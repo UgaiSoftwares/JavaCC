@@ -34,23 +34,23 @@ dependencies {
 
 tasks {
     compileKotlin {
-        compilerOptions.jvmTarget = JvmTarget.JVM_21
+        compilerOptions.jvmTarget = JvmTarget.JVM_17
     }
 
     compileTestKotlin {
-        compilerOptions.jvmTarget = JvmTarget.JVM_21
+        compilerOptions.jvmTarget = JvmTarget.JVM_17
     }
 
     compileJava {
         options.encoding = "UTF-8"
-        sourceCompatibility = "21"
-        targetCompatibility = "21"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
 
     compileTestJava {
         options.encoding = "UTF-8"
-        sourceCompatibility = "21"
-        targetCompatibility = "21"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
 
     test {
@@ -60,7 +60,7 @@ tasks {
 
     withType<Detekt>().configureEach {
         // Target version of the generated JVM bytecode. It is used for type resolution.
-        jvmTarget = "21"
+        jvmTarget = "17"
         reports {
             // observe findings in your browser with structure and code snippets
             html.required.set(true)
@@ -159,7 +159,7 @@ spotless {
 
 dokka.dokkaSourceSets {
     configureEach {
-        jdkVersion.set(21)
+        jdkVersion.set(17)
         enableJdkDocumentationLink.set(false)
         enableKotlinStdLibDocumentationLink.set(false)
     }
