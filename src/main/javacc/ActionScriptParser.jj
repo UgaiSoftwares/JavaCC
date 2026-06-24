@@ -1,0 +1,175 @@
+options {
+  STATIC = false;
+}
+
+PARSER_BEGIN(ActionScriptParser)
+package com.example.javacc;
+
+import java.io.StringReader;
+import java.util.Locale;
+import java.util.Set;
+
+public class ActionScriptParser {
+  private static final Set<String> VALID_ACTIONS = Set.of("RUN", "FIND", "READ", "WALK", "SIT");
+
+  private static final String SAMPLE =
+      "Title\n"
+          + "Description\n"
+          + "\n"
+          + "\n"
+          + "<char0> [RUN] <book> (12)\n"
+          + "<char0> [FIND] <book> (12)\n"
+          + "<char0> [READ] <book> (12)\n"
+          + "<char0> [WALK] <sofa> (244)\n"
+          + "<char0> [SIT] <sofa> (244)\n";
+
+  public static void main(String[] args) throws ParseException {
+    String source;
+    if (args.length == 0) {
+      source = SAMPLE;
+    } else if (args.length == 1) {
+      source = args[0];
+    } else {
+      source = String.join(System.lineSeparator(), args);
+    }
+
+    ActionScriptParser parser = new ActionScriptParser(new StringReader(source));
+
+    try {
+      parser.Input();
+      System.out.println("Valid action script");
+    } catch (ParseException | TokenMgrError e) {
+      System.err.println("Invalid action script");
+      System.err.println(e.getMessage());
+      System.exit(1);
+    }
+  }
+}
+PARSER_END(ActionScriptParser)
+
+SKIP : {
+  " "
+| "\t"
+| "\f"
+}
+
+TOKEN : {
+  < NEWLINE: "\r\n" | "\r" | "\n" >
+| < LT: "<" >
+| < GT: ">" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < LPAREN: "(" >
+| < RPAREN: ")" >
+| < PERIOD: "." >
+| < COMMA: "," >
+| < EXCLAMATION: "!" >
+| < QUESTION: "?" >
+| < COLON: ":" >
+| < SEMICOLON: ";" >
+| < NUMBER: (["0"-"9"])+ >
+| < IDENT: (["A"-"Z","a"-"z","0"-"9","_","-"])+ >
+}
+
+void Input() :
+{}
+{
+  ( MetadataLine() | BlankLine() )*
+  ActionLine()
+  ( BlankLine() | ActionLine() )*
+  <EOF>
+}
+
+void BlankLine() :
+{}
+{
+  <NEWLINE>
+}
+
+void MetadataLine() :
+{}
+{
+  MetadataToken()
+  ( MetadataToken() )*
+  LineEnd()
+}
+
+void MetadataToken() :
+{}
+{
+  <IDENT>
+|
+  <NUMBER>
+|
+  <PERIOD>
+|
+  <COMMA>
+|
+  <EXCLAMATION>
+|
+  <QUESTION>
+|
+  <COLON>
+|
+  <SEMICOLON>
+}
+
+void ActionLine() :
+{}
+{
+  [ Avatar() ]
+  Action()
+  Object()
+  Id()
+  LineEnd()
+}
+
+void Avatar() :
+{}
+{
+  <LT>
+  <IDENT>
+  <GT>
+}
+
+void Action() :
+{
+  Token action;
+}
+{
+  <LBRACKET>
+  action = <IDENT>
+  <RBRACKET>
+  {
+    if (!action.image.matches("[A-Za-z]+")) {
+      throw new ParseException("Invalid action: " + action.image);
+    }
+
+    String normalized = action.image.toUpperCase(Locale.ROOT);
+    if (!VALID_ACTIONS.contains(normalized)) {
+      throw new ParseException("Invalid action: " + action.image);
+    }
+  }
+}
+
+void Object() :
+{}
+{
+  <LT>
+  <IDENT>
+  <GT>
+}
+
+void Id() :
+{}
+{
+  <LPAREN>
+  <NUMBER>
+  <RPAREN>
+}
+
+void LineEnd() :
+{}
+{
+  <NEWLINE>
+}

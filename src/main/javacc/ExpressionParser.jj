@@ -1,0 +1,113 @@
+options {
+  STATIC = false;
+}
+
+PARSER_BEGIN(ExpressionParser)
+package com.example.javacc;
+
+public class ExpressionParser {
+  public static void main(String[] args) throws ParseException {
+    String source = args.length == 0 ? "1 + 2 * (3 + 4) - 5 / 2" : String.join(" ", args);
+    ExpressionParser parser = new ExpressionParser(new java.io.StringReader(source));
+    double result = parser.Input();
+
+    System.out.println(source + " = " + result);
+  }
+}
+PARSER_END(ExpressionParser)
+
+SKIP : {
+  " "
+| "\t"
+| "\r"
+| "\n"
+}
+
+TOKEN : {
+  < PLUS: "+" >
+| < MINUS: "-" >
+| < MUL: "*" >
+| < DIV: "/" >
+| < LPAREN: "(" >
+| < RPAREN: ")" >
+| < NUMBER: (["0"-"9"])+ >
+}
+
+double Input() :
+{
+  double value;
+}
+{
+  value = Expr() <EOF>
+  {
+    return value;
+  }
+}
+
+double Expr() :
+{
+  double value;
+  double rhs;
+}
+{
+  value = Term()
+  (
+      <PLUS> rhs = Term()
+    {
+      value += rhs;
+    }
+    |
+      <MINUS> rhs = Term()
+    {
+      value -= rhs;
+    }
+  )*
+  {
+    return value;
+  }
+}
+
+double Term() :
+{
+  double value;
+  double rhs;
+}
+{
+  value = Factor()
+  (
+      <MUL> rhs = Factor()
+    {
+      value *= rhs;
+    }
+    |
+      <DIV> rhs = Factor()
+    {
+      value /= rhs;
+    }
+  )*
+  {
+    return value;
+  }
+}
+
+double Factor() :
+{
+  Token number;
+  double value;
+}
+{
+    number = <NUMBER>
+  {
+    return Double.parseDouble(number.image);
+  }
+  |
+    <LPAREN> value = Expr() <RPAREN>
+  {
+    return value;
+  }
+  |
+    <MINUS> value = Factor()
+  {
+    return -value;
+  }
+}
